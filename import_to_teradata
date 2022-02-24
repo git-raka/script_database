@@ -1,0 +1,111 @@
+
+
+DEFINE JOB STAMPINGPredicted
+(
+	DEFINE OPERATOR W_1_o_STAMPINGPredicted
+	TYPE LOAD
+	SCHEMA *
+	ATTRIBUTES
+	(
+		VARCHAR UserName, 
+		VARCHAR UserPassword, 
+		VARCHAR LogonMech, 
+		VARCHAR LogonMechData, 
+		VARCHAR LogTable, 
+		VARCHAR TargetTable, 
+		INTEGER BufferSize, 
+		INTEGER ErrorLimit, 
+		INTEGER MaxSessions, 
+		INTEGER MinSessions, 
+		INTEGER TenacityHours, 
+		INTEGER TenacitySleep, 
+		VARCHAR AccountID, 
+		VARCHAR DateForm, 
+		VARCHAR ErrorTable1, 
+		VARCHAR ErrorTable2, 
+		VARCHAR NotifyExit, 
+		VARCHAR NotifyExitIsDLL, 
+		VARCHAR NotifyLevel, 
+		VARCHAR NotifyMethod, 
+		VARCHAR NotifyString, 
+		VARCHAR PauseAcq, 
+		VARCHAR PrivateLogName, 
+		VARCHAR TdpId, 
+		VARCHAR TraceLevel, 
+		VARCHAR WorkingDatabase
+	);
+
+	DEFINE SCHEMA W_0_s_STAMPINGPredicted
+	(
+		Dates VARCHAR(255),
+		n_Day VARCHAR(255),
+		Qty VARCHAR(255)
+	);
+
+	DEFINE OPERATOR W_0_o_STAMPINGPredicted
+	TYPE DATACONNECTOR PRODUCER
+	SCHEMA W_0_s_STAMPINGPredicted
+	ATTRIBUTES
+	(
+		VARCHAR FileName, 
+		VARCHAR Format, 
+		VARCHAR OpenMode, 
+		INTEGER BlockSize, 
+		INTEGER BufferSize, 
+		INTEGER RetentionPeriod, 
+		INTEGER RowsPerInstance, 
+		INTEGER SecondarySpace, 
+		INTEGER UnitCount, 
+		INTEGER VigilElapsedTime, 
+		INTEGER VigilWaitTime, 
+		INTEGER VolumeCount, 
+		VARCHAR AccessModuleName, 
+		VARCHAR AccessModuleInitStr, 
+		VARCHAR DirectoryPath, 
+		VARCHAR ExpirationDate, 
+		VARCHAR IndicatorMode, 
+		VARCHAR PrimarySpace, 
+		VARCHAR PrivateLogName, 
+		VARCHAR RecordFormat, 
+		VARCHAR RecordLength, 
+		VARCHAR SpaceUnit, 
+		VARCHAR TextDelimiter, 
+		VARCHAR VigilNoticeFileName, 
+		VARCHAR VigilStartTime, 
+		VARCHAR VigilStopTime, 
+		VARCHAR VolSerNumber, 
+		VARCHAR UnitType
+	);
+
+	APPLY
+		(
+			'INSERT INTO e_materai.WHOLESALE_STAMPING_QTY (Dates,n_Day,Qty) VALUES (:Dates,:n_Day,:Qty);'
+		)
+	TO OPERATOR
+	(
+		W_1_o_STAMPINGPredicted[1]
+
+		ATTRIBUTES
+		(
+			UserName = 'dbc', 
+			UserPassword = 'dbc', 
+			LogTable = 'database_name.table_name_log', 
+			TargetTable = 'database_name.table_name', 
+			TdpId = 'your_ip'
+		)
+	)
+	SELECT * FROM OPERATOR
+	(
+		W_0_o_STAMPINGPredicted[1]
+
+		ATTRIBUTES
+		(
+			FileName = 'yourfile.txt/csv', 
+			Format = 'DELIMITED', 
+			OpenMode = 'Read', 
+			DirectoryPath = 'C:\Users\your_dir\Documents', 
+			IndicatorMode = 'N', 
+			TextDelimiter = '|'
+		)
+	);
+);
